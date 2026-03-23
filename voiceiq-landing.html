@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="VoiceIQ — Grabá. La IA hace el resto. Transcripciones procesadas automáticamente por Claude y ChatGPT.">
+<title>VoiceIQ — La IA que trabaja mientras vos grabás</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #080808;
+  --white: #f2ede4;
+  --gold: #d4a843;
+  --gold2: #f0c96a;
+  --red: #c93c2a;
+  --gray: #1a1a1a;
+  --gray2: #2a2a2a;
+  --muted: #666;
+  --border: #2a2a2a;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'IBM Plex Mono', monospace;
+  overflow-x: hidden;
+  cursor: default;
+}
+
+/* Grain */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center;
+  padding: 1.1rem 2.5rem;
+  background: rgba(8,8,8,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem; letter-spacing: 0.06em;
+  color: var(--gold); line-height: 1;
+}
+.nav-logo span { color: var(--white); }
+.nav-links { margin-left: auto; display: flex; gap: 2rem; align-items: center; }
+.nav-link {
+  font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; transition: color 0.2s;
+}
+.nav-link:hover { color: var(--white); }
+.nav-cta {
+  background: var(--gold); color: var(--black);
+  padding: 0.5rem 1.2rem; border-radius: 2px;
+  font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase;
+  font-weight: 700; text-decoration: none; transition: all 0.2s;
+}
+.nav-cta:hover { background: var(--gold2); transform: translateY(-1px); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 8rem 2.5rem 4rem;
+  position: relative; z-index: 1;
+  max-width: 1100px; margin: 0 auto;
+  overflow: hidden;
+}
+
+.hero-eyebrow {
+  display: flex; align-items: center; gap: 0.75rem;
+  margin-bottom: 1.75rem;
+  animation: fadeUp 0.7s ease both;
+}
+.eyebrow-line { width: 40px; height: 1px; background: var(--gold); }
+.eyebrow-text {
+  font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--gold);
+}
+
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(3.5rem, 10vw, 8rem);
+  font-weight: 900; line-height: 0.92;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+  animation: fadeUp 0.7s ease 0.1s both;
+}
+.hero-title em {
+  font-style: italic; color: var(--gold);
+  display: block;
+}
+.hero-title .outline {
+  -webkit-text-stroke: 1.5px var(--white);
+  color: transparent;
+}
+
+.hero-sub {
+  font-size: clamp(0.85rem, 2vw, 1.05rem);
+  color: #999; line-height: 1.75;
+  max-width: 520px;
+  margin: 1.75rem 0 2.5rem;
+  animation: fadeUp 0.7s ease 0.2s both;
+}
+
+/* Waitlist form */
+.waitlist-form {
+  display: flex; gap: 0; max-width: 480px;
+  animation: fadeUp 0.7s ease 0.3s both;
+  box-shadow: 0 0 0 1px var(--border);
+  border-radius: 3px; overflow: hidden;
+}
+.waitlist-input {
+  flex: 1;
+  background: var(--gray); border: none; outline: none;
+  color: var(--white); font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.82rem; padding: 0.9rem 1.1rem;
+  transition: background 0.2s;
+}
+.waitlist-input::placeholder { color: #444; }
+.waitlist-input:focus { background: var(--gray2); }
+.waitlist-btn {
+  background: var(--gold); color: var(--black); border: none;
+  padding: 0.9rem 1.4rem; cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  transition: all 0.2s; white-space: nowrap;
+}
+.waitlist-btn:hover { background: var(--gold2); }
+.waitlist-btn.sent { background: #2a6b4a; color: white; }
+
+.waitlist-note {
+  font-size: 0.62rem; color: #444; margin-top: 0.75rem;
+  letter-spacing: 0.04em;
+  animation: fadeUp 0.7s ease 0.4s both;
+}
+.waitlist-note span { color: var(--gold); }
+
+/* Counter */
+.counter-row {
+  display: flex; gap: 2.5rem; margin-top: 3.5rem;
+  animation: fadeUp 0.7s ease 0.5s both;
+}
+.counter-item {}
+.counter-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.4rem; color: var(--white); line-height: 1;
+  letter-spacing: 0.04em;
+}
+.counter-num span { color: var(--gold); }
+.counter-label { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.2rem; }
+
+/* Big diagonal text bg */
+.hero-bg-text {
+  position: absolute; right: -2rem; top: 50%; transform: translateY(-50%);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(6rem, 18vw, 16rem);
+  color: rgba(255,255,255,0.02);
+  letter-spacing: 0.05em; line-height: 1;
+  pointer-events: none; user-select: none;
+  white-space: nowrap;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── TICKER ── */
+.ticker-wrap {
+  background: var(--gold);
+  padding: 0.7rem 0;
+  overflow: hidden;
+  position: relative; z-index: 1;
+}
+.ticker {
+  display: flex; gap: 0;
+  animation: ticker 28s linear infinite;
+  width: max-content;
+}
+.ticker-item {
+  font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--black); font-weight: 700;
+  padding: 0 2rem; white-space: nowrap;
+}
+.ticker-item::after { content: ' · '; }
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ── HOW IT WORKS ── */
+.section {
+  position: relative; z-index: 1;
+  padding: 6rem 2.5rem;
+  max-width: 1100px; margin: 0 auto;
+}
+
+.section-label {
+  display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;
+}
+.section-label-line { width: 30px; height: 1px; background: var(--gold); }
+.section-label-text { font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
+
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 900; line-height: 1.05;
+  letter-spacing: -0.02em; margin-bottom: 1rem;
+}
+.section-title em { font-style: italic; color: var(--gold); }
+
+.steps-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 0; margin-top: 3.5rem;
+  border: 1px solid var(--border);
+}
+.step-item {
+  padding: 2rem 1.5rem;
+  border-right: 1px solid var(--border);
+  position: relative;
+  transition: background 0.2s;
+}
+.step-item:last-child { border-right: none; }
+.step-item:hover { background: rgba(212,168,67,0.04); }
+.step-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3.5rem; color: rgba(212,168,67,0.15);
+  line-height: 1; margin-bottom: 1rem;
+}
+.step-icon { font-size: 1.6rem; margin-bottom: 0.75rem; }
+.step-title { font-size: 0.82rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.02em; }
+.step-desc { font-size: 0.7rem; color: var(--muted); line-height: 1.7; }
+.step-arrow {
+  position: absolute; right: -14px; top: 50%; transform: translateY(-50%);
+  background: var(--gold); color: var(--black);
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; z-index: 2;
+}
+.step-item:last-child .step-arrow { display: none; }
+
+/* ── DIVIDER ── */
+.full-divider {
+  border: none; border-top: 1px solid var(--border);
+  margin: 0;
+}
+
+/* ── FEATURES ── */
+.features-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 3rem;
+}
+.feature-item {
+  background: var(--black);
+  padding: 2rem 1.75rem;
+  transition: background 0.2s;
+}
+.feature-item:hover { background: rgba(212,168,67,0.04); }
+.feature-icon { font-size: 1.8rem; margin-bottom: 1rem; }
+.feature-title { font-size: 0.88rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.02em; }
+.feature-desc { font-size: 0.72rem; color: var(--muted); line-height: 1.7; }
+.feature-badge {
+  display: inline-block; margin-top: 0.75rem;
+  font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.2rem 0.5rem; border-radius: 2px;
+  background: rgba(212,168,67,0.12); color: var(--gold);
+  border: 1px solid rgba(212,168,67,0.3);
+}
+
+/* ── DEMO MOCKUP ── */
+.demo-wrap {
+  background: var(--gray);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 3rem;
+}
+.demo-bar {
+  background: #111;
+  padding: 0.65rem 1rem;
+  display: flex; align-items: center; gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.demo-dots { display: flex; gap: 0.35rem; }
+.demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+.demo-dot:nth-child(1) { background: #c93c2a; }
+.demo-dot:nth-child(2) { background: #d4a843; }
+.demo-dot:nth-child(3) { background: #2a6b4a; }
+.demo-url {
+  flex: 1; text-align: center;
+  font-size: 0.62rem; color: var(--muted);
+}
+.demo-body { padding: 1.5rem; }
+.demo-file-row {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.75rem 1rem; border: 1px solid var(--border);
+  border-radius: 3px; margin-bottom: 0.75rem;
+  background: rgba(255,255,255,0.02);
+  animation: slideIn 0.5s ease both;
+}
+.demo-file-row:nth-child(2) { animation-delay: 0.15s; }
+.demo-file-row:nth-child(3) { animation-delay: 0.3s; }
+@keyframes slideIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
+.dfr-icon { font-size: 1rem; }
+.dfr-name { flex: 1; font-size: 0.72rem; color: #ccc; }
+.dfr-size { font-size: 0.62rem; color: var(--muted); }
+.dfr-status {
+  font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 0.18rem 0.45rem; border-radius: 2px;
+}
+.dfrs-ok { background: rgba(42,107,74,0.25); color: #6fcf97; }
+.dfrs-proc { background: rgba(212,168,67,0.2); color: var(--gold2); }
+.demo-result {
+  border: 1px solid rgba(212,168,67,0.3);
+  border-radius: 3px; padding: 1rem;
+  background: rgba(212,168,67,0.04);
+}
+.dr-header { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center; }
+.dr-title { font-size: 0.72rem; font-weight: 700; flex: 1; }
+.ai-pill {
+  font-size: 0.56rem; letter-spacing: 0.08em;
+  padding: 0.18rem 0.45rem; border-radius: 2px;
+}
+.ai-claude { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+.ai-gpt { background: rgba(16,163,127,0.15); color: #34d399; border: 1px solid rgba(16,163,127,0.3); }
+.dr-text { font-size: 0.7rem; color: #aaa; line-height: 1.75; }
+.dr-actions { margin-top: 0.75rem; }
+.dr-action {
+  display: flex; align-items: center; gap: 0.6rem;
+  font-size: 0.68rem; color: #bbb;
+  padding: 0.35rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.dr-action::before { content: '→'; color: var(--gold); font-size: 0.7rem; }
+
+/* ── PRICING ── */
+.pricing-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 3rem;
+}
+.pricing-card {
+  background: var(--black); padding: 2.5rem 1.75rem;
+  position: relative; transition: background 0.2s;
+}
+.pricing-card:hover { background: rgba(255,255,255,0.02); }
+.pricing-card.featured { background: var(--gray); }
+.pricing-tag {
+  font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 0.75rem; display: block;
+}
+.pricing-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem; letter-spacing: 0.05em; margin-bottom: 0.5rem;
+}
+.pricing-price {
+  font-family: 'Playfair Display', serif;
+  font-size: 3rem; font-weight: 900; line-height: 1;
+  color: var(--gold); margin-bottom: 0.3rem;
+}
+.pricing-price sup { font-size: 1.4rem; }
+.pricing-price sub { font-size: 0.9rem; color: var(--muted); font-weight: 400; }
+.pricing-desc { font-size: 0.68rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6; }
+.pricing-features { list-style: none; margin-bottom: 2rem; }
+.pricing-features li {
+  font-size: 0.7rem; color: #bbb; padding: 0.45rem 0;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.pricing-features li::before { content: '—'; color: var(--gold); font-size: 0.7rem; }
+.pricing-features li.disabled { color: var(--muted); }
+.pricing-features li.disabled::before { color: #333; }
+.pricing-btn {
+  display: block; width: 100%; padding: 0.85rem;
+  text-align: center; text-decoration: none;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+  font-weight: 700; border: 1.5px solid; border-radius: 2px;
+  cursor: pointer; transition: all 0.2s;
+}
+.pricing-btn-outline { background: none; color: var(--white); border-color: var(--border); }
+.pricing-btn-outline:hover { border-color: var(--white); }
+.pricing-btn-gold { background: var(--gold); color: var(--black); border-color: var(--gold); }
+.pricing-btn-gold:hover { background: var(--gold2); transform: translateY(-1px); }
+
+/* ── TESTIMONIALS ── */
+.testimonials-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 3rem;
+}
+.testimonial {
+  background: var(--black); padding: 1.75rem;
+  transition: background 0.2s;
+}
+.testimonial:hover { background: var(--gray); }
+.testi-quote {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.92rem; font-style: italic;
+  line-height: 1.7; color: #ccc; margin-bottom: 1.25rem;
+}
+.testi-quote::before { content: '"'; color: var(--gold); font-size: 1.5rem; line-height: 0; vertical-align: -0.3em; margin-right: 0.2rem; }
+.testi-author { font-size: 0.65rem; color: var(--muted); }
+.testi-author strong { color: var(--white); display: block; margin-bottom: 0.1rem; }
+.testi-stars { color: var(--gold); font-size: 0.7rem; margin-bottom: 0.75rem; }
+
+/* ── FAQ ── */
+.faq-list { margin-top: 2.5rem; }
+.faq-item {
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.faq-q {
+  width: 100%; background: none; border: none;
+  color: var(--white); font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.82rem; text-align: left;
+  padding: 1.25rem 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: color 0.2s;
+}
+.faq-q:hover { color: var(--gold); }
+.faq-arrow { font-size: 1rem; transition: transform 0.3s; color: var(--gold); }
+.faq-item.open .faq-arrow { transform: rotate(45deg); }
+.faq-a {
+  font-size: 0.75rem; color: var(--muted); line-height: 1.8;
+  max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s;
+  padding: 0;
+}
+.faq-item.open .faq-a { max-height: 200px; padding-bottom: 1.25rem; }
+
+/* ── FINAL CTA ── */
+.cta-section {
+  position: relative; z-index: 1;
+  background: var(--gold);
+  padding: 5rem 2.5rem;
+  text-align: center;
+  overflow: hidden;
+}
+.cta-section::before {
+  content: 'VOICE IQ';
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(5rem, 20vw, 18rem);
+  color: rgba(0,0,0,0.06); white-space: nowrap;
+  pointer-events: none; letter-spacing: 0.1em;
+}
+.cta-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 900; color: var(--black);
+  line-height: 1.05; letter-spacing: -0.02em;
+  margin-bottom: 1rem; position: relative;
+}
+.cta-sub {
+  font-size: 0.9rem; color: rgba(0,0,0,0.6);
+  margin-bottom: 2.5rem; position: relative;
+}
+.cta-form {
+  display: flex; gap: 0; max-width: 440px; margin: 0 auto;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
+  position: relative;
+}
+.cta-input {
+  flex: 1; background: var(--black); color: var(--white);
+  border: none; outline: none;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem;
+  padding: 0.95rem 1.1rem;
+}
+.cta-input::placeholder { color: #444; }
+.cta-btn {
+  background: var(--black); color: var(--gold);
+  border: none; padding: 0.95rem 1.4rem; cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  transition: all 0.2s; white-space: nowrap;
+}
+.cta-btn:hover { background: #1a1a1a; }
+.cta-note { font-size: 0.62rem; color: rgba(0,0,0,0.5); margin-top: 0.75rem; position: relative; }
+
+/* ── FOOTER ── */
+footer {
+  position: relative; z-index: 1;
+  background: var(--black);
+  border-top: 1px solid var(--border);
+  padding: 2rem 2.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 1rem;
+}
+.footer-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem; color: var(--gold); letter-spacing: 0.06em;
+}
+.footer-logo span { color: #444; }
+.footer-copy { font-size: 0.62rem; color: var(--muted); }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-link { font-size: 0.62rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.footer-link:hover { color: var(--white); }
+
+/* Success state */
+.success-msg {
+  display: none; text-align: center;
+  padding: 1rem 1.5rem; background: rgba(42,107,74,0.15);
+  border: 1px solid rgba(42,107,74,0.4); border-radius: 3px;
+  color: #6fcf97; font-size: 0.78rem;
+  max-width: 480px;
+}
+.success-msg.show { display: block; }
+
+@media (max-width: 768px) {
+  nav { padding: 1rem 1.25rem; }
+  .nav-links { display: none; }
+  .hero { padding: 6rem 1.25rem 3rem; }
+  .section { padding: 4rem 1.25rem; }
+  .steps-grid { grid-template-columns: 1fr 1fr; }
+  .step-item:nth-child(2) { border-right: none; }
+  .step-item:nth-child(3) { border-top: 1px solid var(--border); }
+  .step-item:nth-child(4) { border-top: 1px solid var(--border); }
+  .step-arrow { display: none; }
+  .features-grid { grid-template-columns: 1fr; }
+  .pricing-grid { grid-template-columns: 1fr; }
+  .testimonials-grid { grid-template-columns: 1fr; }
+  .counter-row { gap: 1.5rem; flex-wrap: wrap; }
+  .waitlist-form { flex-direction: column; }
+  .waitlist-input { border-radius: 3px 3px 0 0; }
+  .waitlist-btn { border-radius: 0 0 3px 3px; }
+  .cta-form { flex-direction: column; }
+  footer { flex-direction: column; text-align: center; }
+  .footer-links { justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Voice<span>IQ</span></div>
+  <div class="nav-links">
+    <a href="#como-funciona" class="nav-link">Cómo funciona</a>
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#precios" class="nav-link">Precios</a>
+    <a href="#faq" class="nav-link">FAQ</a>
+    <a href="#lista-espera" class="nav-cta">Quiero acceso</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-text">VOICEIQ</div>
+
+  <div class="hero-eyebrow">
+    <div class="eyebrow-line"></div>
+    <span class="eyebrow-text">Compatible con TicNote · PLAUD · Otter · Cualquier app</span>
+  </div>
+
+  <h1 class="hero-title">
+    Grabá.<br>
+    <em>La IA</em><br>
+    <span class="outline">hace el resto.</span>
+  </h1>
+
+  <p class="hero-sub">VoiceIQ detecta automáticamente tus transcripciones, las procesa con Claude y ChatGPT y te devuelve resúmenes, puntos de acción y respuestas a tus preguntas. Sin que toques nada.</p>
+
+  <div id="hero-form-wrap">
+    <div class="waitlist-form" id="heroForm">
+      <input class="waitlist-input" type="email" id="heroEmail" placeholder="tu@email.com">
+      <button class="waitlist-btn" onclick="joinWaitlist('heroEmail', 'heroForm', 'heroSuccess')">Quiero acceso →</button>
+    </div>
+    <div class="success-msg" id="heroSuccess">
+      ✓ Anotado. Te escribimos cuando abra el acceso.
+    </div>
+    <p class="waitlist-note">7 días gratis · Sin tarjeta · Luego <span>$5/mes</span></p>
+  </div>
+
+  <div class="counter-row">
+    <div class="counter-item">
+      <div class="counter-num" id="cnt1">0</div>
+      <div class="counter-label">En lista de espera</div>
+    </div>
+    <div class="counter-item">
+      <div class="counter-num"><span>2</span></div>
+      <div class="counter-label">IAs procesando</div>
+    </div>
+    <div class="counter-item">
+      <div class="counter-num"><span>100%</span></div>
+      <div class="counter-label">Automático</div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span class="ticker-item">Transcripción automática</span>
+    <span class="ticker-item">Resumen ejecutivo</span>
+    <span class="ticker-item">Puntos de acción</span>
+    <span class="ticker-item">Claude + ChatGPT</span>
+    <span class="ticker-item">Compatible con TicNote</span>
+    <span class="ticker-item">Sin pasos manuales</span>
+    <span class="ticker-item">Android · Web</span>
+    <span class="ticker-item">7 días gratis</span>
+    <span class="ticker-item">Transcripción automática</span>
+    <span class="ticker-item">Resumen ejecutivo</span>
+    <span class="ticker-item">Puntos de acción</span>
+    <span class="ticker-item">Claude + ChatGPT</span>
+    <span class="ticker-item">Compatible con TicNote</span>
+    <span class="ticker-item">Sin pasos manuales</span>
+    <span class="ticker-item">Android · Web</span>
+    <span class="ticker-item">7 días gratis</span>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="como-funciona">
+  <div class="section-label">
+    <div class="section-label-line"></div>
+    <span class="section-label-text">Cómo funciona</span>
+  </div>
+  <h2 class="section-title">Cuatro pasos.<br><em>Solo uno es tuyo.</em></h2>
+
+  <div class="steps-grid">
+    <div class="step-item">
+      <div class="step-num">01</div>
+      <div class="step-icon">🎙</div>
+      <div class="step-title">Grabás</div>
+      <div class="step-desc">Usás tu TicNote, PLAUD, Otter, o cualquier grabadora. Como siempre. Nada cambia.</div>
+      <div class="step-arrow">→</div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">02</div>
+      <div class="step-icon">📂</div>
+      <div class="step-title">VoiceIQ detecta</div>
+      <div class="step-desc">La app monitorea tu carpeta en tiempo real. Cuando aparece un archivo nuevo, actúa solo.</div>
+      <div class="step-arrow">→</div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">03</div>
+      <div class="step-icon">🤖</div>
+      <div class="step-title">Claude + ChatGPT procesan</div>
+      <div class="step-desc">Ambas IAs analizan simultáneamente el texto. Resumen, tareas, ideas clave.</div>
+      <div class="step-arrow">→</div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">04</div>
+      <div class="step-icon">✅</div>
+      <div class="step-title">Resultado listo</div>
+      <div class="step-desc">Abrís la app y encontrás todo procesado. Podés hacer preguntas sobre el contenido.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="full-divider">
+
+<!-- DEMO -->
+<section class="section">
+  <div class="section-label">
+    <div class="section-label-line"></div>
+    <span class="section-label-text">En acción</span>
+  </div>
+  <h2 class="section-title">Así se ve<br><em>por dentro.</em></h2>
+
+  <div class="demo-wrap">
+    <div class="demo-bar">
+      <div class="demo-dots">
+        <div class="demo-dot"></div>
+        <div class="demo-dot"></div>
+        <div class="demo-dot"></div>
+      </div>
+      <div class="demo-url">voiceiq.app — Monitor activo</div>
+    </div>
+    <div class="demo-body">
+      <div class="demo-file-row">
+        <span class="dfr-icon">📄</span>
+        <span class="dfr-name">reunion_equipo_23mar.txt</span>
+        <span class="dfr-size">14 KB</span>
+        <span class="dfr-status dfrs-ok">Listo</span>
+      </div>
+      <div class="demo-file-row">
+        <span class="dfr-icon">📄</span>
+        <span class="dfr-name">notas_proyecto_nuevo.txt</span>
+        <span class="dfr-size">8 KB</span>
+        <span class="dfr-status dfrs-proc">Procesando...</span>
+      </div>
+      <div class="demo-result">
+        <div class="dr-header">
+          <span style="font-size:0.9rem">📋</span>
+          <span class="dr-title">reunion_equipo_23mar.txt</span>
+          <span class="ai-pill ai-claude">Claude</span>
+          <span class="ai-pill ai-gpt">ChatGPT</span>
+        </div>
+        <p class="dr-text">Se revisó el cronograma del Q2. El equipo acordó priorizar el lanzamiento de la feature de exportación. Lucía coordinará con diseño, Tomás entrega prototipo el viernes.</p>
+        <div class="dr-actions">
+          <div class="dr-action">Lucía: coordinar con diseño antes del jueves</div>
+          <div class="dr-action">Tomás: entregar prototipo el viernes 28/03</div>
+          <div class="dr-action">Confirmar fecha de release con producto</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="full-divider">
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-label">
+    <div class="section-label-line"></div>
+    <span class="section-label-text">Features</span>
+  </div>
+  <h2 class="section-title">Todo lo que<br><em>necesitás.</em></h2>
+
+  <div class="features-grid">
+    <div class="feature-item">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">100% automático</div>
+      <div class="feature-desc">VoiceIQ monitorea tu carpeta en tiempo real. En cuanto llega un archivo nuevo, lo procesa sin que toques nada. Cero fricción.</div>
+      <span class="feature-badge">Core feature</span>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">🤖</div>
+      <div class="feature-title">Dos IAs en simultáneo</div>
+      <div class="feature-desc">Claude (Anthropic) y ChatGPT (OpenAI) procesan cada archivo al mismo tiempo. Dos perspectivas, más cobertura, mejor resultado.</div>
+      <span class="feature-badge">Exclusivo</span>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">📱</div>
+      <div class="feature-title">Compatible con todo</div>
+      <div class="feature-desc">TicNote, PLAUD Note, Otter.ai, grabadora nativa de Android, o cualquier carpeta personalizada. Si exporta TXT, VoiceIQ lo procesa.</div>
+      <span class="feature-badge">Universal</span>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">💬</div>
+      <div class="feature-title">Preguntá sobre el contenido</div>
+      <div class="feature-desc">¿Quién dijo qué? ¿Cuáles fueron los acuerdos? Hacé preguntas sobre cualquier transcripción y las IAs te responden en contexto.</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">✅</div>
+      <div class="feature-title">Puntos de acción</div>
+      <div class="feature-desc">Cada procesamiento genera una lista de tareas con responsables, prioridades y fechas si las hay. Directamente accionable.</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">🔒</div>
+      <div class="feature-title">Tu data, tus keys</div>
+      <div class="feature-desc">Usás tus propias API keys. Tus transcripciones no pasan por nuestros servidores. Privacidad total desde el diseño.</div>
+      <span class="feature-badge">Privacy-first</span>
+    </div>
+  </div>
+</section>
+
+<hr class="full-divider">
+
+<!-- PRICING -->
+<section class="section" id="precios">
+  <div class="section-label">
+    <div class="section-label-line"></div>
+    <span class="section-label-text">Precios</span>
+  </div>
+  <h2 class="section-title">Simple.<br><em>Sin sorpresas.</em></h2>
+
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <span class="pricing-tag">Empezá acá</span>
+      <div class="pricing-name">Trial</div>
+      <div class="pricing-price"><sup>$</sup>0<sub> / 7 días</sub></div>
+      <p class="pricing-desc">Acceso completo sin tarjeta. Probá todo sin compromiso. Al vencer, elegís continuar o no.</p>
+      <ul class="pricing-features">
+        <li>Archivos ilimitados</li>
+        <li>Claude + ChatGPT</li>
+        <li>Resumen + tareas</li>
+        <li>Preguntas sobre archivos</li>
+        <li class="disabled">Prompt personalizado</li>
+        <li class="disabled">Exportar resultados</li>
+      </ul>
+      <a href="#lista-espera" class="pricing-btn pricing-btn-outline">Empezar trial</a>
+    </div>
+    <div class="pricing-card featured">
+      <span class="pricing-tag">★ Más popular</span>
+      <div class="pricing-name">Starter</div>
+      <div class="pricing-price"><sup>$</sup>5<sub> / mes</sub></div>
+      <p class="pricing-desc">Todo lo que necesitás para uso diario. Se activa automáticamente al terminar el trial si no cancelás.</p>
+      <ul class="pricing-features">
+        <li>Archivos ilimitados</li>
+        <li>Claude + ChatGPT</li>
+        <li>Resumen + tareas</li>
+        <li>Preguntas sobre archivos</li>
+        <li>Historial 30 días</li>
+        <li class="disabled">Prompt personalizado</li>
+      </ul>
+      <a href="#lista-espera" class="pricing-btn pricing-btn-gold">Empezar — $5/mes</a>
+    </div>
+    <div class="pricing-card">
+      <span class="pricing-tag">Máximo control</span>
+      <div class="pricing-name">Pro</div>
+      <div class="pricing-price"><sup>$</sup>12<sub> / mes</sub></div>
+      <p class="pricing-desc">Para profesionales que quieren controlar cada detalle del procesamiento y guardar todo sin límites.</p>
+      <ul class="pricing-features">
+        <li>Todo lo de Starter</li>
+        <li>Prompt personalizado</li>
+        <li>Todos los modelos de IA</li>
+        <li>Historial ilimitado</li>
+        <li>Exportar a PDF / Word</li>
+        <li>Soporte prioritario</li>
+      </ul>
+      <a href="#lista-espera" class="pricing-btn pricing-btn-outline">Empezar — $12/mes</a>
+    </div>
+  </div>
+</section>
+
+<hr class="full-divider">
+
+<!-- TESTIMONIALS -->
+<section class="section">
+  <div class="section-label">
+    <div class="section-label-line"></div>
+    <span class="section-label-text">Early users</span>
+  </div>
+  <h2 class="section-title">Lo que dicen<br><em>los primeros.</em></h2>
+
+  <div class="testimonials-grid">
+    <div class="testimonial">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-quote">Grabo 8 reuniones por semana. Antes me pasaba una hora resumiendo. Ahora abro la app y ya está todo procesado.</p>
+      <div class="testi-author">
+        <strong>Martín R.</strong>
+        Gerente de producto · Beta tester
+      </div>
+    </div>
+    <div class="testimonial">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-quote">El hecho de que use Claude y ChatGPT al mismo tiempo es lo que me convenció. Dos perspectivas sobre la misma reunión.</p>
+      <div class="testi-author">
+        <strong>Valeria T.</strong>
+        Consultora · Beta tester
+      </div>
+    </div>
+    <div class="testimonial">
+      <div class="testi-stars">★★★★☆</div>
+      <p class="testi-quote">Uso el TicNote desde hace meses. VoiceIQ es el complemento que le faltaba. La automatización es real, no mentira de marketing.</p>
+      <div class="testi-author">
+        <strong>Diego F.</strong>
+        Abogado · Beta tester
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="full-divider">
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <div class="section-label">
+    <div class="section-label-line"></div>
+    <span class="section-label-text">Preguntas frecuentes</span>
+  </div>
+  <h2 class="section-title">Todo lo que<br><em>querés saber.</em></h2>
+
+  <div class="faq-list">
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        ¿Necesito un TicNote para usar VoiceIQ?
+        <span class="faq-arrow">+</span>
+      </button>
+      <div class="faq-a">No. VoiceIQ es compatible con cualquier app que exporte transcripciones en TXT o Markdown: TicNote, PLAUD Note, Otter.ai, la grabadora nativa de Android, o cualquier carpeta que elijas. Si tenés el texto, VoiceIQ lo procesa.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        ¿Tengo que pagar las APIs de Claude y ChatGPT aparte?
+        <span class="faq-arrow">+</span>
+      </button>
+      <div class="faq-a">En el plan Starter y Pro, VoiceIQ incluye el costo de las APIs. Vos pagás un precio fijo mensual y nosotros absorbemos el costo de procesamiento. No hay sorpresas.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        ¿Qué pasa con mis datos? ¿Las transcripciones son privadas?
+        <span class="faq-arrow">+</span>
+      </button>
+      <div class="faq-a">Tus transcripciones se envían directamente a Claude y ChatGPT para su procesamiento. No almacenamos el contenido de tus grabaciones en nuestros servidores. Los resultados generados sí se guardan localmente en tu dispositivo para que puedas revisarlos.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        ¿Funciona en iPhone?
+        <span class="faq-arrow">+</span>
+      </button>
+      <div class="faq-a">El lanzamiento inicial es para Android y Web. La versión iOS está en el roadmap para el Q3 2026. Si te suscribís a la lista, te avisamos cuando esté disponible.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        ¿Puedo cancelar el trial sin pagar nada?
+        <span class="faq-arrow">+</span>
+      </button>
+      <div class="faq-a">Sí. El trial dura 7 días con acceso completo. Si cancelás antes de que venza, no se hace ningún cargo. Sin preguntas, sin fricción.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="cta-section" id="lista-espera">
+  <h2 class="cta-title">Grabá.<br>Nosotros procesamos.</h2>
+  <p class="cta-sub">Sumate a la lista de espera. 7 días gratis cuando abra el acceso.</p>
+
+  <div id="cta-form-wrap">
+    <div class="cta-form" id="ctaForm">
+      <input class="cta-input" type="email" id="ctaEmail" placeholder="tu@email.com">
+      <button class="cta-btn" onclick="joinWaitlist('ctaEmail', 'ctaForm', 'ctaSuccess')">Quiero acceso →</button>
+    </div>
+    <div class="success-msg" id="ctaSuccess" style="background:rgba(0,0,0,0.1);border-color:rgba(0,0,0,0.2);color:rgba(0,0,0,0.7);max-width:440px;margin:0 auto">
+      ✓ Perfecto. Te escribimos cuando abra el acceso.
+    </div>
+    <p class="cta-note">Sin tarjeta requerida · Luego $5/mes · Cancelá cuando quieras</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Voice<span>IQ</span></div>
+  <div class="footer-copy">© 2026 VoiceIQ. Todos los derechos reservados.</div>
+  <div class="footer-links">
+    <a href="#" class="footer-link">Privacidad</a>
+    <a href="#" class="footer-link">Términos</a>
+    <a href="#" class="footer-link">Contacto</a>
+  </div>
+</footer>
+
+<script>
+// Waitlist counter animation
+function animateCounter(el, target, duration) {
+  let start = 0;
+  const step = target / (duration / 16);
+  const timer = setInterval(() => {
+    start += step;
+    if (start >= target) { el.textContent = target; clearInterval(timer); return; }
+    el.textContent = Math.floor(start);
+  }, 16);
+}
+window.addEventListener('load', () => {
+  setTimeout(() => animateCounter(document.getElementById('cnt1'), 127, 1800), 600);
+});
+
+// Waitlist join
+const waitlistEmails = new Set();
+function joinWaitlist(inputId, formId, successId) {
+  const email = document.getElementById(inputId).value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById(inputId).style.boxShadow = '0 0 0 2px #c93c2a';
+    setTimeout(() => document.getElementById(inputId).style.boxShadow = '', 1500);
+    return;
+  }
+  waitlistEmails.add(email);
+  document.getElementById(formId).style.display = 'none';
+  document.getElementById(successId).classList.add('show');
+
+  // Animate counter
+  const cnt = document.getElementById('cnt1');
+  const current = parseInt(cnt.textContent) || 127;
+  animateCounter(cnt, current + 1, 600);
+}
+
+// FAQ toggle
+function toggleFaq(btn) {
+  const item = btn.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = '1';
+      e.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.step-item, .feature-item, .testimonial, .pricing-card').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(20px)';
+  el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  observer.observe(el);
+});
+
+// Smooth scroll for nav links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+</script>
+</body>
+</html>
